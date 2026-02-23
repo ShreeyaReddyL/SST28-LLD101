@@ -1,23 +1,33 @@
 public class TransportBookingService {
-    // DIP violation: direct concretes
-    public void book(TripRequest req) {
-        DistanceCalculator dist = new DistanceCalculator();
-        DriverAllocator alloc = new DriverAllocator();
-        PaymentGateway pay = new PaymentGateway();
+    private final DistanceCalculator dist;
+    private final DriverAllocator alloc;
+    private final PaymentGateway pay;
+    private final PricingStrategy pricing;
+    private final BookingPrinter printer;
 
+    // DIP: Injects dependencies via constructor
+    public TransportBookingService(DistanceCalculator dist, DriverAllocator alloc, 
+                                   PaymentGateway pay, PricingStrategy pricing, 
+                                   BookingPrinter printer) {
+        this.dist = dist;
+        this.alloc = alloc;
+        this.pay = pay;
+        this.pricing = pricing;
+        this.printer = printer;
+    }
+
+    public void book(TripRequest req) {
         double km = dist.km(req.from, req.to);
-        System.out.println("DistanceKm=" + km);
+        printer.printDistance(km);
 
         String driver = alloc.allocate(req.studentId);
-        System.out.println("Driver=" + driver);
+        printer.printDriver(driver);
 
-        double fare = 50.0 + km * 6.6666666667; // messy pricing
-        fare = Math.round(fare * 100.0) / 100.0;
-
+        double fare = pricing.calculateFare(km);
         String txn = pay.charge(req.studentId, fare);
-        System.out.println("Payment=PAID txn=" + txn);
+        printer.printPayment(txn);
 
         BookingReceipt r = new BookingReceipt("R-501", fare);
-        System.out.println("RECEIPT: " + r.id + " | fare=" + String.format("%.2f", r.fare));
+        printer.printReceipt(r);
     }
 }

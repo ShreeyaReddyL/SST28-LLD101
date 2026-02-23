@@ -3,13 +3,17 @@ public class Main {
         System.out.println("=== Export Demo ===");
 
         ExportRequest req = new ExportRequest("Weekly Report", SampleData.longBody());
-        Exporter pdf = new PdfExporter();
+        
+        // We use Composition to add the 20-char constraint to PDF!
+        Exporter pdf = new ConstrainedExporter(new PdfExporter(), 20, "PDF");
         Exporter csv = new CsvExporter();
         Exporter json = new JsonExporter();
+        Exporter html = new HtmlExporter(); // Stretch goal
 
         System.out.println("PDF: " + safe(pdf, req));
         System.out.println("CSV: " + safe(csv, req));
         System.out.println("JSON: " + safe(json, req));
+        System.out.println("HTML: " + safe(html, req)); // Stretch goal output
     }
 
     private static String safe(Exporter e, ExportRequest r) {

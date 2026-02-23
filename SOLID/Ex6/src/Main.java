@@ -3,21 +3,27 @@ public class Main {
         System.out.println("=== Notification Demo ===");
         AuditLog audit = new AuditLog();
 
-        Notification n = new Notification("Welcome", "Hello and welcome to SST!", "riya@sst.edu", "9876543210");
+        Notification req1 = new Notification("riya@sst.edu", "Welcome", "Hello and welcome to SST!");
+        Notification req2 = new Notification("9876543210", "Welcome", "Hello and welcome to SST!");
+        Notification req3 = new Notification("9876543210", "Welcome", "Hello and welcome to SST!");
 
         NotificationSender email = new EmailSender(audit);
         NotificationSender sms = new SmsSender(audit);
         NotificationSender wa = new WhatsAppSender(audit);
 
-        email.send(n);
-        sms.send(n);
-        try {
-            wa.send(n);
-        } catch (RuntimeException ex) {
-            System.out.println("WA ERROR: " + ex.getMessage());
-            audit.add("WA failed");
-        }
+        safeSend(email, req1);
+        safeSend(sms, req2);
+        safeSend(wa, req3);
 
-        System.out.println("AUDIT entries=" + audit.size());
+        System.out.println("AUDIT entries=" + audit.getEntries());
+    }
+
+    private static void safeSend(NotificationSender sender, Notification n) {
+        try {
+            // Polymorphism at work: We rely entirely on the base class contract!
+            sender.send(n);
+        } catch (IllegalArgumentException ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 }
